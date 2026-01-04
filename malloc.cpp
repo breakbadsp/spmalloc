@@ -36,9 +36,9 @@ void free(void* p)
     // TODO:: Return memory to OS if last block is free
 }
 
-void split_block(struct block_meta* block, size_t p_incr)
+struct block_meta* split_block(struct block_meta* block, size_t p_incr)
 {
-    if(!block) return;
+    if(!block) return nullptr;
     struct block_meta* needed_block = block;
     if(needed_block->size >= p_incr + META_SIZE + 10) // minimum block size after split
     {
@@ -49,7 +49,10 @@ void split_block(struct block_meta* block, size_t p_incr)
         splitted_block->free = 1;
         needed_block->size = p_incr;
         needed_block->next = splitted_block;
+        return needed_block;
     }
+
+    return block;
 }
 
 void* find_free_block(struct block_meta* last, size_t p_incr)
@@ -60,6 +63,7 @@ void* find_free_block(struct block_meta* last, size_t p_incr)
     {
         if(curr->free && curr->size >= p_incr)
         {
+            curr = split_block(curr, p_incr);
             curr->free = 0;
             return (void*)((char*)curr + META_SIZE);
         }
