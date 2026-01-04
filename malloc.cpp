@@ -55,7 +55,7 @@ struct block_meta* split_block(struct block_meta* block, size_t p_incr)
     return block;
 }
 
-void* find_free_block(struct block_meta* last, size_t p_incr)
+void* find_free_block(struct block_meta** last, size_t p_incr)
 {
     //TODO:: Optimize by maintaining free list
     struct block_meta* curr = global_base;
@@ -65,9 +65,10 @@ void* find_free_block(struct block_meta* last, size_t p_incr)
         {
             curr = split_block(curr, p_incr);
             curr->free = 0;
+            // we do not need last if we found a block, it is needed only for extending heap
             return (void*)((char*)curr + META_SIZE);
         }
-        last = curr;
+        *last = curr;
         curr = curr->next;
     }
     return nullptr;
@@ -96,7 +97,7 @@ void* extend_heap(struct block_meta* last, size_t p_incr)
     {
         global_base = new_block;
     }
-    else
+    else if (last)
     {
         last->next = new_block;
     }
@@ -110,7 +111,7 @@ void* malloc(size_t p_incr)
 
     // First, try to find a free block in existing heap memory
     struct block_meta* last = nullptr;
-    void* p = find_free_block(last, p_incr);
+    void* p = find_free_block(&last, p_incr);
     if(p)
     {
         return p;
