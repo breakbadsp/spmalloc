@@ -52,7 +52,7 @@ void split_block(struct block_meta* block, size_t p_incr)
     }
 }
 
-void* find_free_block(size_t p_incr)
+void* find_free_block(struct block_meta* last, size_t p_incr)
 {
     //TODO:: Optimize by maintaining free list
     struct block_meta* curr = global_base;
@@ -63,12 +63,13 @@ void* find_free_block(size_t p_incr)
             curr->free = 0;
             return (void*)(curr + 1);// + 1 works because curr is of type block_meta*
         }
+        last = curr;
         curr = curr->next;
     }
     return nullptr;
 }
 
-void* extend_heap(size_t p_incr)
+void* extend_heap(struct block_meta* last, size_t p_incr)
 {
     // No fitting block found, request more memory
     void* p = sbrk((intptr_t)0);
@@ -93,7 +94,6 @@ void* extend_heap(size_t p_incr)
     }
     else
     {
-        struct block_meta* last = (struct block_meta*)p - 1;
         last->next = new_block;
     }
     return (void*)(new_block + 1);
@@ -105,12 +105,14 @@ void* malloc(size_t p_incr)
     //TODO:: Handle zero-size allocation, no idea how it works right now in standard malloc
 
     // First, try to find a free block in existing heap memory
-    void* p = find_free_block(p_incr);
+    struct block_meta* last = nullptr;
+    void* p = find_free_block(last, p_incr);
     if(p)
     {
         return p;
     }
-    return extend_heap(p_incr);
+    // find_free_block updates last to point to the last block
+    return extend_heap(last, p_incr);
 }
 
 
