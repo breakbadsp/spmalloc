@@ -11,7 +11,6 @@ struct block_meta
     struct block_meta* next {nullptr};
     size_t size {};
     int free {true};
-    u_int64_t magic {0x00000000};
 };
 
 constexpr int META_SIZE = sizeof(block_meta);
@@ -32,9 +31,7 @@ void free(void* p)
     //Free on nullptr is no-op
     if(!p)  return;
     struct block_meta* header = (struct block_meta*)p - 1;
-    assert(header->magic == 0xffffffff || header->magic == 0x12345678); // check for valid magic number
     header->free = 1;
-    header->magic = 0x87654321; // mark as freed block
     merge_with_next(header);
     // TODO:: Return memory to OS if last block is free
 }
@@ -50,7 +47,6 @@ void split_block(struct block_meta* block, size_t p_incr)
         splitted_block->size = needed_block->size - p_incr - META_SIZE;
         splitted_block->next = needed_block->next;
         splitted_block->free = 1;
-        splitted_block->magic = 0x87654321; // freed block
         needed_block->size = p_incr;
         needed_block->next = splitted_block;
     }
@@ -65,7 +61,6 @@ void* find_free_block(size_t p_incr)
         if(curr->free && curr->size >= p_incr)
         {
             curr->free = 0;
-            curr->magic = 0x12345678; // reused block
             return (void*)(curr + 1);// + 1 works because curr is of type block_meta*
         }
         curr = curr->next;
@@ -92,7 +87,6 @@ void* extend_heap(size_t p_incr)
     new_block->size = p_incr;
     new_block->next = nullptr;
     new_block->free = 0;
-    new_block->magic = 0xffffffff; // new block
     if(!global_base)
     {
         global_base = new_block;
@@ -139,8 +133,6 @@ void* realloc(void* ptr, size_t size)
     }
 
     struct block_meta* header = (struct block_meta*)ptr - 1;
-    assert(header->magic == 0xffffffff || header->magic == 0x12345678); // check for valid magic number
-
     if(header->size >= size)
     {
         // Current block is already large enough
