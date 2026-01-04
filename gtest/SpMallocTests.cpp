@@ -54,3 +54,25 @@ TEST(SPMallocTest, ReallocFunctionality) {
 
     free(new_ptr); // Free the reallocated memory
 }
+
+TEST(SPMallocTest, MultipleAllocations) {
+    constexpr size_t alloc_size = 256; // 256 bytes
+    constexpr int num_allocs = 10;
+    void* ptrs[num_allocs];
+
+    // Allocate multiple blocks
+    for (int i = 0; i < num_allocs; ++i) {
+        ptrs[i] = malloc(alloc_size);
+        ASSERT_NE(ptrs[i], nullptr); // Ensure each allocation was successful
+    }
+
+    // Free all allocated blocks
+    for (int i = 0; i < num_allocs; ++i) {
+        free(ptrs[i]);
+    }
+}
+
+TEST(SPMallocTest, FreeNullPointer) {
+    // Freeing a null pointer should not cause any issues
+    EXPECT_NO_THROW(free(nullptr));
+}
