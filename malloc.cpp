@@ -61,7 +61,7 @@ void* find_free_block(struct block_meta* last, size_t p_incr)
         if(curr->free && curr->size >= p_incr)
         {
             curr->free = 0;
-            return (void*)(curr + 1);// + 1 works because curr is of type block_meta*
+            return (void*)((char*)curr + META_SIZE);
         }
         last = curr;
         curr = curr->next;
@@ -96,7 +96,7 @@ void* extend_heap(struct block_meta* last, size_t p_incr)
     {
         last->next = new_block;
     }
-    return (void*)(new_block + 1);
+    return (void*)((char*)new_block + META_SIZE);
 }
 
 void* malloc(size_t p_incr)
