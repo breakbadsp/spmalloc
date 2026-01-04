@@ -39,6 +39,23 @@ void free(void* p)
     // TODO:: Return memory to OS if last block is free
 }
 
+void split_block(struct block_meta* block, size_t p_incr)
+{
+    if(!block) return;
+    struct block_meta* needed_block = block;
+    if(needed_block->size >= p_incr + META_SIZE + 10) // minimum block size after split
+    {
+        auto* splitted_block = (struct block_meta*)((char*)needed_block + META_SIZE + p_incr);
+
+        splitted_block->size = needed_block->size - p_incr - META_SIZE;
+        splitted_block->next = needed_block->next;
+        splitted_block->free = 1;
+        splitted_block->magic = 0x87654321; // freed block
+        needed_block->size = p_incr;
+        needed_block->next = splitted_block;
+    }
+}
+
 void* find_free_block(size_t p_incr)
 {
     //TODO:: Optimize by maintaining free list
@@ -49,7 +66,6 @@ void* find_free_block(size_t p_incr)
         {
             curr->free = 0;
             curr->magic = 0x12345678; // reused block
-            // TODO:: Split block if significantly larger than requested size
             return (void*)(curr + 1);// + 1 works because curr is of type block_meta*
         }
         curr = curr->next;

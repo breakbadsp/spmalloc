@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-#include "malloc.h"
 
 TEST(SPMallocTest, BasicAllocation) {
     const size_t alloc_size = 1024; // 1 KB
