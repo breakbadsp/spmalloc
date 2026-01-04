@@ -18,13 +18,24 @@ constexpr int META_SIZE = sizeof(block_meta);
 
 struct block_meta* global_base = nullptr;
 
+void merge_with_next(struct block_meta* block)
+{
+    while(block->next && block->next->free)
+    {
+        block->size += META_SIZE + block->next->size;
+        block->next = block->next->next;
+    }
+}
+
 void free(void* p)
 {
-    assert(p != nullptr);
+    //Free on nullptr is no-op
+    if(!p)  return;
     struct block_meta* header = (struct block_meta*)p - 1;
     assert(header->magic == 0xffffffff || header->magic == 0x12345678); // check for valid magic number
     header->free = 1;
-    // TODO:: Coalesce free blocks if possible
+    header->magic = 0x87654321; // mark as freed block
+    merge_with_next(header);
     // TODO:: Return memory to OS if last block is free
 }
 
@@ -81,6 +92,7 @@ void* extend_heap(size_t p_incr)
 void* malloc(size_t p_incr)
 {
     //TODO:: Align p_incr to multiple of 8 or 16 for better alignment
+    //TODO:: Handle zero-size allocation, no idea how it works right now in standard malloc
 
     // First, try to find a free block in existing heap memory
     void* p = find_free_block(p_incr);
