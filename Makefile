@@ -6,7 +6,7 @@
 #   overriding `TARGET` on the make command line.
 
 # C++ compiler and flags are overrideable (use ?= so environment can override)
-CXX ?= 
+CXX ?= g++
 CFLAGS ?= -std=c++26 -Wall -Wextra -O2 -g
 
 # Position-independent code flags for building shared objects. Overrideable.
@@ -20,7 +20,7 @@ TARGET ?= malloc.so
 
 # Source files and derived object files
 SRCS := malloc.cpp
-OBJS := $(SRCS:.c=.o)
+OBJS := $(SRCS:.cpp=.o)
 
 .PHONY: all clean
 
