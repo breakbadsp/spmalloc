@@ -33,6 +33,18 @@ add_executable(SpMallocTests ${SOURCES})
 target_include_directories(SpMallocTests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/..)
 target_compile_options(SpMallocTests PRIVATE -Wall -Wextra -Wpedantic -Werror)
 
+# C++26 Modern Sanitizers: Enable AddressSanitizer and UndefinedBehaviorSanitizer for robust testing
+if(NOT MSVC)
+    target_compile_options(SpMallocTests PRIVATE 
+        -fsanitize=address,undefined
+        -fno-sanitize-recover=all
+        -fno-omit-frame-pointer
+    )
+    target_link_options(SpMallocTests PRIVATE
+        -fsanitize=address,undefined
+    )
+endif()
+
 # Link with GoogleTest
 target_link_libraries(
   SpMallocTests

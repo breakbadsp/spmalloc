@@ -9,11 +9,15 @@
 CXX ?= g++
 CFLAGS ?= -std=c++26 -Wall -Wextra -O2 -g
 
+# C++26 Modern Sanitizers: AddressSanitizer and UndefinedBehaviorSanitizer for development
+SANITIZER_FLAGS ?= -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer
+CFLAGS += $(SANITIZER_FLAGS)
+
 # Position-independent code flags for building shared objects. Overrideable.
 PICFLAGS ?= -fPIC
 
 # Linker flags for producing a shared object. Overrideable.
-LDFLAGS ?= -shared
+LDFLAGS ?= -shared $(SANITIZER_FLAGS)
 
 # Default executable name (overrideable). Avoids using the name "malloc".
 TARGET ?= malloc.so
